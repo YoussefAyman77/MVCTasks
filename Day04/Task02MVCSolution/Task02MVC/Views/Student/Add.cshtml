@@ -1,0 +1,24 @@
+﻿@model StudentAddEditVM
+
+<h1>Add</h1>
+<form method="post" action="/Student/SaveAdd">
+    <div>
+        <label>Name</label>
+        <input type="text" name="Name" id="Name" value="@Model?.Name" class="form form-control" />
+    </div>
+    <div>
+        <label>Age</label>
+        <input type="number" name="Age" id="Age" value="@Model?.Age" class="form form-control" />
+    </div>
+
+    <div>
+        <label>Department</label>
+        <select name="DepartmentId" class="form-control form">
+            @foreach (var item in Model?.Departments)
+            {
+                <option value="@item.Id">@item.Name</option>
+            }
+        </select>
+    </div>
+    <input type="submit" value="Create" class="btn btn-primary mt-3 mb-3" />
+</form>

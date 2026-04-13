@@ -1,0 +1,13 @@
+﻿@model DepartmentWithExtraDetails
+<h1>Details</h1>
+
+<h2>@Model.DeptName</h2>
+<br /> 
+<h2>@Model.State</h2>
+<select class="form form-control">
+    @foreach (var item in Model.StudentsMoreThan25)
+    {
+        <option>@item.Name</option>
+    }
+</select>
+
