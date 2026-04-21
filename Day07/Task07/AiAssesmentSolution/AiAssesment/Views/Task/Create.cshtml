@@ -1,0 +1,229 @@
+@model AiAssesment.Domain.Entities.TaskItem
+
+@{
+    ViewData["Title"] = "Create Task";
+}
+
+<style>
+    .form-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .breadcrumb-nav { font-size: .82rem; color: #64748b; display: flex; align-items: center; gap: .4rem; }
+    .breadcrumb-nav a { color: #6366f1; text-decoration: none; }
+    .breadcrumb-nav a:hover { text-decoration: underline; }
+    .page-title-row h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .page-title-row h1 .title-icon {
+        width: 40px; height: 40px;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(99,102,241,.35);
+    }
+
+    /* Form card */
+    .form-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.07);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        max-width: 680px;
+    }
+    .form-card-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 1.25rem 1.75rem;
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        color: #fff;
+    }
+    .form-card-header .header-icon {
+        width: 36px; height: 36px;
+        background: rgba(99,102,241,.3);
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+        border: 1px solid rgba(99,102,241,.4);
+    }
+    .form-card-header h2 { font-size: 1rem; font-weight: 600; margin: 0; }
+    .form-card-header p  { font-size: .78rem; margin: 0; color: rgba(255,255,255,.6); }
+
+    .form-card-body { padding: 1.75rem; }
+
+    /* Form field styling */
+    .field-group { margin-bottom: 1.25rem; }
+    .field-label {
+        font-size: .8rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: .4rem;
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .field-label i { color: #6366f1; }
+    .form-control, .form-select {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: .88rem;
+        padding: .55rem .85rem;
+        transition: border-color .2s, box-shadow .2s;
+        color: #0f172a;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    }
+    textarea.form-control { resize: vertical; min-height: 100px; }
+
+    /* Checkbox toggle */
+    .check-row {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: .75rem 1rem;
+    }
+    .form-check-input { width: 1.15rem; height: 1.15rem; cursor: pointer; accent-color: #6366f1; }
+    .check-row label { font-size: .88rem; font-weight: 500; color: #374151; cursor: pointer; margin: 0; }
+
+    /* Card footer actions */
+    .form-card-footer {
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        padding: 1.1rem 1.75rem;
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: .55rem 1.4rem;
+        font-size: .88rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        cursor: pointer;
+        transition: all .2s;
+        box-shadow: 0 2px 8px rgba(99,102,241,.35);
+    }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,.45); }
+    .btn-back {
+        background: transparent;
+        color: #64748b;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: .5rem 1.2rem;
+        font-size: .88rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        transition: all .18s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: #374151; border-color: #cbd5e1; }
+
+    .validation-msg { font-size: .78rem; color: #dc2626; margin-top: .3rem; display: flex; align-items: center; gap: .25rem; }
+</style>
+
+<!-- Header row -->
+<div class="form-page-header">
+    <div>
+        <div class="breadcrumb-nav mb-1">
+            <a asp-action="Index"><i class="bi bi-list-task"></i> All Tasks</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>New Task</span>
+        </div>
+        <div class="page-title-row">
+            <h1>
+                <span class="title-icon"><i class="bi bi-plus-lg"></i></span>
+                Create New Task
+            </h1>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index"  class="btn-back"><i class="bi bi-arrow-left"></i> Back to List</a>
+    </div>
+</div>
+
+<!-- Form card -->
+<div class="form-card">
+    <div class="form-card-header">
+        <div class="header-icon"><i class="bi bi-pencil-square"></i></div>
+        <div>
+            <h2>Task Details</h2>
+            <p>Fill in the fields below to create a new task.</p>
+        </div>
+    </div>
+
+    <form asp-action="Create">
+        <div class="form-card-body">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 px-3 mb-3" style="font-size:.82rem; border-radius:8px;"></div>
+
+            <!-- Title -->
+            <div class="field-group">
+                <label asp-for="Title" class="field-label"><i class="bi bi-card-heading"></i> Title <span style="color:#ef4444">*</span></label>
+                <input asp-for="Title" class="form-control" placeholder="Enter task title…" />
+                <div asp-validation-for="Title" class="validation-msg"><i class="bi bi-exclamation-circle"></i></div>
+            </div>
+
+            <!-- Description -->
+            <div class="field-group">
+                <label asp-for="Description" class="field-label"><i class="bi bi-text-left"></i> Description</label>
+                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Add a description (optional)…"></textarea>
+                <div asp-validation-for="Description" class="validation-msg"><i class="bi bi-exclamation-circle"></i></div>
+            </div>
+
+            <!-- Due Date -->
+            <div class="field-group">
+                <label asp-for="DueDate" class="field-label"><i class="bi bi-calendar-event"></i> Due Date</label>
+                <input asp-for="DueDate" type="date" class="form-control" />
+                <div asp-validation-for="DueDate" class="validation-msg"><i class="bi bi-exclamation-circle"></i></div>
+            </div>
+
+            <!-- Is Completed -->
+            <div class="field-group mb-0">
+                <label class="field-label"><i class="bi bi-circle-half"></i> Status</label>
+                <div class="check-row">
+                    <input asp-for="IsCompleted" class="form-check-input" id="IsCompleted" />
+                    <label for="IsCompleted">Mark as Completed</label>
+                </div>
+                <div asp-validation-for="IsCompleted" class="validation-msg"><i class="bi bi-exclamation-circle"></i></div>
+            </div>
+        </div>
+
+        <!-- Footer actions -->
+        <div class="form-card-footer">
+            <button type="submit" class="btn-submit"><i class="bi bi-plus-circle"></i> Create Task</button>
+            <a asp-action="Index" class="btn-back"><i class="bi bi-x-lg"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,240 @@
+@model AiAssesment.Domain.Entities.TaskItem
+
+@{
+    ViewData["Title"] = "Task Details";
+    bool isOverdue = !Model.IsCompleted && Model.DueDate.HasValue && Model.DueDate.Value.Date < DateTime.Today;
+}
+
+<style>
+    .form-page-header {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .breadcrumb-nav { font-size: .82rem; color: #64748b; display: flex; align-items: center; gap: .4rem; }
+    .breadcrumb-nav a { color: #6366f1; text-decoration: none; }
+    .breadcrumb-nav a:hover { text-decoration: underline; }
+    .page-title-row h1 {
+        font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0;
+        display: flex; align-items: center; gap: .5rem;
+    }
+    .page-title-row h1 .title-icon {
+        width: 40px; height: 40px;
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(56,189,248,.35);
+    }
+
+    .detail-card {
+        background: #fff; border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.07);
+        border: 1px solid #e2e8f0; overflow: hidden; max-width: 680px;
+    }
+    .detail-card-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 1.5rem 1.75rem; color: #fff;
+    }
+    .detail-card-header .header-top {
+        display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem;
+    }
+    .detail-card-header .header-icon {
+        width: 42px; height: 42px;
+        background: rgba(56,189,248,.25);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        border: 1px solid rgba(56,189,248,.4);
+    }
+    .detail-card-header h2 { font-size: 1.15rem; font-weight: 700; margin: 0; }
+    .detail-card-header .header-meta {
+        display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+    .header-chip {
+        font-size: .72rem; font-weight: 600;
+        padding: .25rem .6rem; border-radius: 20px;
+        display: inline-flex; align-items: center; gap: .3rem;
+    }
+    .chip-id       { background: rgba(255,255,255,.1); color: rgba(255,255,255,.7); }
+    .chip-created  { background: rgba(99,102,241,.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,.3); }
+    .chip-completed { background: rgba(34,197,94,.2); color: #86efac; border: 1px solid rgba(34,197,94,.3); }
+    .chip-active   { background: rgba(245,158,11,.2); color: #fde68a; border: 1px solid rgba(245,158,11,.3); }
+    .chip-overdue  { background: rgba(239,68,68,.2); color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
+
+    .detail-card-body { padding: 1.75rem; }
+
+    .detail-row {
+        display: flex; gap: 1rem; margin-bottom: 1.25rem;
+        padding-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9;
+    }
+    .detail-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .detail-icon {
+        width: 36px; height: 36px; flex-shrink: 0;
+        background: #f1f5f9; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: #6366f1; font-size: .9rem;
+    }
+    .detail-label { font-size: .75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .15rem; }
+    .detail-value { font-size: .92rem; color: #1e293b; font-weight: 500; }
+    .detail-value.text-empty { color: #cbd5e1; font-style: italic; font-weight: 400; }
+
+    .badge-lg { font-size: .82rem; font-weight: 700; padding: .35rem .75rem; border-radius: 20px; display: inline-flex; align-items: center; gap: .35rem; }
+    .badge-completed { background: #dcfce7; color: #166534; }
+    .badge-active    { background: #fef3c7; color: #92400e; }
+    .badge-overdue   { background: #fee2e2; color: #991b1b; }
+
+    .detail-card-footer {
+        background: #f8fafc; border-top: 1px solid #e2e8f0;
+        padding: 1.1rem 1.75rem;
+        display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    }
+    .btn-act {
+        border-radius: 8px; padding: .5rem 1.2rem;
+        font-size: .85rem; font-weight: 600;
+        text-decoration: none; display: inline-flex;
+        align-items: center; gap: .4rem; transition: all .18s; border: none;
+    }
+    .btn-edit {
+        background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+        box-shadow: 0 2px 8px rgba(99,102,241,.3);
+    }
+    .btn-edit:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,.4); color: #fff; }
+    .btn-del-outline {
+        background: transparent; color: #dc2626;
+        border: 1.5px solid #fca5a5;
+    }
+    .btn-del-outline:hover { background: #fff5f5; color: #b91c1c; }
+    .btn-back-outline {
+        background: transparent; color: #64748b;
+        border: 1.5px solid #e2e8f0;
+    }
+    .btn-back-outline:hover { background: #f1f5f9; color: #374151; }
+    .btn-ml-auto { margin-left: auto; }
+</style>
+
+<!-- Header -->
+<div class="form-page-header">
+    <div>
+        <div class="breadcrumb-nav mb-1">
+            <a asp-action="Index"><i class="bi bi-list-task"></i> All Tasks</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>Details</span>
+        </div>
+        <div class="page-title-row">
+            <h1>
+                <span class="title-icon"><i class="bi bi-eye"></i></span>
+                Task Details
+            </h1>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-act btn-back-outline"><i class="bi bi-pencil"></i> Edit</a>
+        <a asp-action="Index" class="btn-act btn-back-outline"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<!-- Detail Card -->
+<div class="detail-card">
+    <div class="detail-card-header">
+        <div class="header-top">
+            <div class="header-icon"><i class="bi bi-card-checklist"></i></div>
+            <h2>@Model.Title</h2>
+        </div>
+        <div class="header-meta">
+            <span class="header-chip chip-id"><i class="bi bi-hash"></i>ID: @Model.Id</span>
+            <span class="header-chip chip-created"><i class="bi bi-calendar-plus"></i>@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+            @if (Model.IsCompleted)
+            {
+                <span class="header-chip chip-completed"><i class="bi bi-check-circle-fill"></i>Completed</span>
+            }
+            else if (isOverdue)
+            {
+                <span class="header-chip chip-overdue"><i class="bi bi-exclamation-triangle-fill"></i>Overdue</span>
+            }
+            else
+            {
+                <span class="header-chip chip-active"><i class="bi bi-hourglass-split"></i>Active</span>
+            }
+        </div>
+    </div>
+
+    <div class="detail-card-body">
+        <!-- Title -->
+        <div class="detail-row">
+            <div class="detail-icon"><i class="bi bi-card-heading"></i></div>
+            <div>
+                <div class="detail-label">Title</div>
+                <div class="detail-value">@Model.Title</div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-row">
+            <div class="detail-icon"><i class="bi bi-text-left"></i></div>
+            <div>
+                <div class="detail-label">Description</div>
+                <div class="detail-value @(string.IsNullOrEmpty(Model.Description) ? "text-empty" : "")">
+                    @(string.IsNullOrEmpty(Model.Description) ? "No description provided." : Model.Description)
+                </div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="detail-row">
+            <div class="detail-icon"><i class="bi bi-circle-half"></i></div>
+            <div>
+                <div class="detail-label">Status</div>
+                <div>
+                    @if (Model.IsCompleted)
+                    {
+                        <span class="badge-lg badge-completed"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                    }
+                    else if (isOverdue)
+                    {
+                        <span class="badge-lg badge-overdue"><i class="bi bi-exclamation-triangle-fill"></i> Overdue</span>
+                    }
+                    else
+                    {
+                        <span class="badge-lg badge-active"><i class="bi bi-hourglass-split"></i> Active</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Created At -->
+        <div class="detail-row">
+            <div class="detail-icon"><i class="bi bi-calendar-plus"></i></div>
+            <div>
+                <div class="detail-label">Created At</div>
+                <div class="detail-value">@Model.CreatedAt.ToString("dddd, MMMM dd, yyyy  h:mm tt")</div>
+            </div>
+        </div>
+
+        <!-- Due Date -->
+        <div class="detail-row">
+            <div class="detail-icon"><i class="bi bi-calendar-event"></i></div>
+            <div>
+                <div class="detail-label">Due Date</div>
+                @if (Model.DueDate.HasValue)
+                {
+                    <div class="detail-value" style="@(isOverdue ? "color:#dc2626; font-weight:700;" : "")">
+                        @if (isOverdue) { <i class="bi bi-exclamation-circle" style="color:#dc2626"></i> }
+                        @Model.DueDate.Value.ToString("dddd, MMMM dd, yyyy")
+                        @if (isOverdue) { <span style="font-size:.78rem; margin-left:.5rem; color:#ef4444;">(Past due)</span> }
+                    </div>
+                }
+                else
+                {
+                    <div class="detail-value text-empty">No due date set.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="detail-card-footer">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-act btn-edit"><i class="bi bi-pencil-square"></i> Edit Task</a>
+        <a asp-action="Index" class="btn-act btn-back-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn-act btn-del-outline btn-ml-auto"><i class="bi bi-trash"></i> Delete</a>
+    </div>
+</div>

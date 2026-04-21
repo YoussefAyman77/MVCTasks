@@ -1,0 +1,304 @@
+@model IEnumerable<AiAssesment.Domain.Entities.TaskItem>
+
+@{
+    ViewData["Title"] = "Task List";
+    var totalTasks   = Model.Count();
+    var activeTasks  = Model.Count(t => !t.IsCompleted);
+    var doneTasks    = Model.Count(t => t.IsCompleted);
+    var overdueTasks = Model.Count(t => !t.IsCompleted && t.DueDate.HasValue && t.DueDate.Value.Date < DateTime.Today);
+}
+
+<style>
+    .page-header-card {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-radius: 16px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,.18);
+        color: #fff;
+    }
+    .page-header-card h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        font-size: .78rem;
+        font-weight: 600;
+        padding: .3rem .7rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.07);
+        color: rgba(255,255,255,.8);
+    }
+    .stat-chip.chip-active  { border-color: rgba(245,158,11,.4);  background: rgba(245,158,11,.12); color: #fbbf24; }
+    .stat-chip.chip-done    { border-color: rgba(34,197,94,.4);   background: rgba(34,197,94,.12);  color: #4ade80; }
+    .stat-chip.chip-overdue { border-color: rgba(239,68,68,.4);   background: rgba(239,68,68,.12);  color: #f87171; }
+    .stat-chip.chip-total   { border-color: rgba(99,102,241,.4);  background: rgba(99,102,241,.12); color: #a5b4fc; }
+
+    /* Toolbar */
+    .task-toolbar {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+        box-shadow: 0 2px 10px rgba(0,0,0,.06);
+        border: 1px solid #e2e8f0;
+    }
+    .task-toolbar .toolbar-label {
+        font-size: .78rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        margin-right: .25rem;
+    }
+    .toolbar-btn {
+        font-size: .8rem;
+        font-weight: 600;
+        padding: .4rem .9rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        transition: all .18s;
+        border: 1px solid transparent;
+    }
+    .toolbar-btn-all     { background: #6366f1; color: #fff; }
+    .toolbar-btn-all:hover { background: #4f46e5; color: #fff; transform: translateY(-1px); }
+    .toolbar-btn-active  { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .toolbar-btn-active:hover { background: #fde68a; color: #92400e; }
+    .toolbar-btn-done    { background: #dcfce7; color: #166534; border-color: #86efac; }
+    .toolbar-btn-done:hover { background: #bbf7d0; color: #166534; }
+    .toolbar-btn-sort    { background: #f0f9ff; color: #075985; border-color: #7dd3fc; }
+    .toolbar-btn-sort:hover { background: #e0f2fe; color: #075985; }
+    .toolbar-btn-create  { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; box-shadow: 0 2px 8px rgba(99,102,241,.3); }
+    .toolbar-btn-create:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,.4); color: #fff; }
+    .toolbar-sep { width: 1px; height: 24px; background: #e2e8f0; margin: 0 .25rem; }
+
+    /* Table card */
+    .table-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.07);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+    .table-card table { margin: 0; }
+    .table-card thead th {
+        background: #f8fafc;
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: #64748b;
+        border-bottom: 2px solid #e2e8f0;
+        padding: .85rem 1.1rem;
+        white-space: nowrap;
+    }
+    .table-card tbody td {
+        padding: .85rem 1.1rem;
+        vertical-align: middle;
+        font-size: .88rem;
+        border-color: #f1f5f9;
+        color: #1e293b;
+    }
+    .table-card tbody tr { transition: background .15s; }
+    .table-card tbody tr:hover { background: #f8fafc; }
+    .table-card tbody tr.row-overdue { background: #fff5f5; }
+    .table-card tbody tr.row-overdue:hover { background: #fee2e2; }
+    .table-card tbody tr.row-completed td { opacity: .65; }
+
+    /* Title cell */
+    .task-title { font-weight: 600; color: #1e293b; }
+    .task-desc  { font-size: .8rem; color: #64748b; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Badges */
+    .badge-status {
+        font-size: .72rem;
+        font-weight: 700;
+        padding: .3rem .65rem;
+        border-radius: 20px;
+        letter-spacing: .03em;
+    }
+    .badge-completed { background: #dcfce7; color: #166534; }
+    .badge-active    { background: #fef3c7; color: #92400e; }
+    .badge-overdue   { background: #fee2e2; color: #991b1b; }
+
+    /* Date cell */
+    .date-val { font-size: .82rem; color: #475569; }
+    .date-overdue { color: #dc2626; font-weight: 600; }
+
+    /* Action buttons in table */
+    .action-btn {
+        font-size: .74rem;
+        font-weight: 600;
+        padding: .28rem .6rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        transition: all .15s;
+        border: 1px solid transparent;
+    }
+    .ab-edit    { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .ab-edit:hover    { background: #dbeafe; color: #1d4ed8; }
+    .ab-details { background: #f0f9ff; color: #075985; border-color: #7dd3fc; }
+    .ab-details:hover { background: #e0f2fe; color: #075985; }
+    .ab-delete  { background: #fff5f5; color: #dc2626; border-color: #fca5a5; }
+    .ab-delete:hover  { background: #fee2e2; color: #dc2626; }
+    .ab-done    { background: #dcfce7; color: #166534; border-color: #86efac; cursor: pointer; }
+    .ab-done:hover    { background: #bbf7d0; color: #166534; }
+    .ab-undo    { background: #fef3c7; color: #92400e; border-color: #fcd34d; cursor: pointer; }
+    .ab-undo:hover    { background: #fde68a; color: #92400e; }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3.5rem 1rem;
+    }
+    .empty-state i { font-size: 3rem; color: #cbd5e1; }
+    .empty-state p { color: #94a3b8; margin-top: .75rem; }
+</style>
+
+<!-- Page Header -->
+<div class="page-header-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h1><i class="bi bi-check2-square"></i> Task Management</h1>
+            <p class="mb-0 mt-1" style="color:rgba(255,255,255,.6); font-size:.88rem;">Manage and track all your tasks in one place.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <span class="stat-chip chip-total"><i class="bi bi-stack"></i> @totalTasks Total</span>
+            <span class="stat-chip chip-active"><i class="bi bi-hourglass-split"></i> @activeTasks Active</span>
+            <span class="stat-chip chip-done"><i class="bi bi-check-circle"></i> @doneTasks Done</span>
+            @if (overdueTasks > 0)
+            {
+                <span class="stat-chip chip-overdue"><i class="bi bi-exclamation-triangle"></i> @overdueTasks Overdue</span>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="task-toolbar">
+    <span class="toolbar-label"><i class="bi bi-funnel me-1"></i>View:</span>
+    <a asp-action="Index" class="toolbar-btn toolbar-btn-all"><i class="bi bi-list-task"></i>All Tasks</a>
+    <a asp-action="Filter" asp-route-isCompleted="false" class="toolbar-btn toolbar-btn-active"><i class="bi bi-hourglass-split"></i>Active</a>
+    <a asp-action="Filter" asp-route-isCompleted="true"  class="toolbar-btn toolbar-btn-done"><i class="bi bi-check-circle"></i>Completed</a>
+    <a asp-action="Sorted" class="toolbar-btn toolbar-btn-sort"><i class="bi bi-sort-down-alt"></i>Sort by Due Date</a>
+    <div class="toolbar-sep"></div>
+    <a asp-action="Create" class="toolbar-btn toolbar-btn-create ms-auto"><i class="bi bi-plus-lg"></i>New Task</a>
+</div>
+
+<!-- Table Card -->
+<div class="table-card">
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-clipboard-x"></i>
+            <p>No tasks found. <a asp-action="Create">Create your first task!</a></p>
+        </div>
+    }
+    else
+    {
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th><i class="bi bi-card-text me-1"></i>Title</th>
+                    <th><i class="bi bi-text-left me-1"></i>Description</th>
+                    <th><i class="bi bi-circle-half me-1"></i>Status</th>
+                    <th><i class="bi bi-calendar-plus me-1"></i>Created</th>
+                    <th><i class="bi bi-calendar-event me-1"></i>Due Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    bool isOverdue = !item.IsCompleted && item.DueDate.HasValue && item.DueDate.Value.Date < DateTime.Today;
+                    <tr class="@(item.IsCompleted ? "row-completed" : isOverdue ? "row-overdue" : "")">
+                        <td>
+                            <div class="task-title">@item.Title</div>
+                        </td>
+                        <td>
+                            <div class="task-desc" title="@item.Description">
+                                @(string.IsNullOrEmpty(item.Description) ? "—" : item.Description)
+                            </div>
+                        </td>
+                        <td>
+                            @if (item.IsCompleted)
+                            {
+                                <span class="badge-status badge-completed"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                            }
+                            else if (isOverdue)
+                            {
+                                <span class="badge-status badge-overdue"><i class="bi bi-exclamation-triangle-fill"></i> Overdue</span>
+                            }
+                            else
+                            {
+                                <span class="badge-status badge-active"><i class="bi bi-hourglass-split"></i> Active</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="date-val">@item.CreatedAt.ToString("MMM dd, yyyy")</span>
+                        </td>
+                        <td>
+                            @if (item.DueDate.HasValue)
+                            {
+                                <span class="date-val @(isOverdue ? "date-overdue" : "")">
+                                    @if (isOverdue) { <i class="bi bi-exclamation-circle"></i> }
+                                    @item.DueDate.Value.ToString("MMM dd, yyyy")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="date-val text-muted">—</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 flex-nowrap">
+                                <form asp-action="ToggleComplete" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    @if (item.IsCompleted)
+                                    {
+                                        <button type="submit" class="action-btn ab-undo" title="Mark as Active"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="action-btn ab-done" title="Mark as Completed"><i class="bi bi-check-lg"></i></button>
+                                    }
+                                </form>
+                                <a asp-action="Edit"    asp-route-id="@item.Id" class="action-btn ab-edit"><i class="bi bi-pencil"></i>Edit</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="action-btn ab-details"><i class="bi bi-eye"></i>View</a>
+                                <a asp-action="Delete"  asp-route-id="@item.Id" class="action-btn ab-delete"><i class="bi bi-trash"></i>Del</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <!-- Table footer summary -->
+        <div style="background:#f8fafc; padding:.65rem 1.1rem; font-size:.78rem; color:#64748b; border-top:1px solid #e2e8f0; display:flex; gap:1.5rem;">
+            <span><i class="bi bi-stack me-1"></i>@totalTasks task(s)</span>
+            <span><i class="bi bi-hourglass-split me-1" style="color:#f59e0b"></i>@activeTasks active</span>
+            <span><i class="bi bi-check-circle me-1" style="color:#22c55e"></i>@doneTasks completed</span>
+            @if (overdueTasks > 0)
+            {
+                <span><i class="bi bi-exclamation-triangle me-1" style="color:#ef4444"></i>@overdueTasks overdue</span>
+            }
+        </div>
+    }
+</div>
