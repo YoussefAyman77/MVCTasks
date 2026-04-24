@@ -1,0 +1,27 @@
+﻿@model StudentAddEditVM
+
+<h1>Edit</h1>
+<form method="post" asp-controller="Student" asp-action="SaveEdit">
+    <input asp-for="Id" type="hidden"/> 
+    <div>
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div>
+        <label asp-for="Age"></label>
+        <input asp-for="Age" class="form form-control" />
+        <span asp-validation-for="Age" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="DepartmentId"></label>
+        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-control">
+        </select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+    </div>
+    <input type="submit" value="Create" class="btn btn-primary mt-3 mb-3" />
+</form>
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

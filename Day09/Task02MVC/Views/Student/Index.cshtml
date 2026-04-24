@@ -1,0 +1,30 @@
+﻿@model List<Student>
+@{
+    Layout = "_MyLayout";
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+<h1>Students</h1>
+<a href="/Student/Add" class="btn btn-success mt-3 mb-3">New</a>
+<table class="table table-hover table-bordered">
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Age</th>
+        <th>DepartmentId</th>
+    </tr>
+    @foreach (var stu in Model)
+    {
+        <tr>
+            <td>@stu?.Id</td>
+            <td>@stu?.Name</td>
+            <td>@stu?.Age</td>
+            <td>@stu?.DepartmentId</td>
+            <td><a href="/Student/ShowByID/@stu?.Id">Details</a></td>
+            <td><a href="/Student/Edit/@stu?.Id">Edit</a></td>
+            <td><a href="/Student/Delete/@stu?.Id">Delete</a></td>
+        </tr>
+    }
+</table>
